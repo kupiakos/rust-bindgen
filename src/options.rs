@@ -23,7 +23,6 @@ where
     );
 
     let matches = App::new("bindgen")
-        .version(option_env!("CARGO_PKG_VERSION").unwrap_or("unknown"))
         .about("Generates Rust bindings from C/C++ headers.")
         .override_usage("bindgen [FLAGS] [OPTIONS] <header> -- <clang-args>...")
         .args(&[
@@ -534,8 +533,21 @@ where
             Arg::new("explicit-padding")
                 .long("explicit-padding")
                 .help("Always output explicit padding fields."),
+            Arg::new("V")
+                .long("version")
+                .help("Prints the version, and exits"),
         ]) // .args()
         .get_matches_from(args);
+
+    let verbose = matches.is_present("verbose");
+
+    if matches.is_present("V") {
+        println!("bindgen {}", option_env!("CARGO_PKG_VERSION").unwrap_or("unknown"));
+        if verbose {
+            println!("Clang version: {}", crate::clang_version().full);
+        }
+        std::process::exit(0);
+    }
 
     let mut builder = builder();
 
@@ -993,8 +1005,6 @@ where
     if matches.is_present("explicit-padding") {
         builder = builder.explicit_padding(true);
     }
-
-    let verbose = matches.is_present("verbose");
 
     Ok((builder, output, verbose))
 }
